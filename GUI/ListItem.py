@@ -10,3 +10,6 @@ class ListItem(QComboBox):
         
     def getItemBase(self):
         return ItemBase()
+    
+    def getItem(self):
+         return ItemBase()
