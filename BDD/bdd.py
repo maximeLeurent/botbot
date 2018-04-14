@@ -12,9 +12,18 @@ class Categorie(base):
     __tablename__ = "categorie"
     id_ = Column(Integer, primary_key=True)
     nom = Column(String(20))
-    xHDV = Column(Integer)
-    yHDV = Column(Integer)
+    HDVs = relationship("HDV", back_populates= "categorie")
     ingredients = relationship("Ingredient", back_populates= "categorie")
+
+class HDV(base):
+    __tablename__ = "hdv"
+    id_ = Column(Integer, primary_key=True)
+    xPos = Column(Integer)
+    yPos = Column(Integer)
+    ville = Column(String(20))
+    categorie_id = Column(Integer, ForeignKey("categorie.id_"))
+    categorie = relationship("Categorie", back_populates= "HDVs")
+
 
 bonusBaseEquipement = Table('bonusBaseEquipement', base.metadata,
     Column('equipement_id', Integer, ForeignKey('equipement.id_')),
@@ -47,12 +56,20 @@ class Ingredient(base):
     quant_8 = Column(Integer)
     metier_id = Column(Integer,ForeignKey("metier.id_"))
     metier = relationship("Metier",back_populates="ingredients")
+    type = Column(String(50))
+    __mapper_args__ = {
+        'polymorphic_identity':'ingredient',
+        'polymorphic_on':type
+    }
 
 
 class Ressource(Ingredient):
     __tablename__ = "ressource"
     id_ = Column(Integer, ForeignKey("ingredient.id_"),primary_key=True)
-    prixs = relationship("prixRessource", back_populates= "ressources")
+    prixs = relationship("PrixRessource", back_populates= "ressources")
+    __mapper_args__ = {
+        'polymorphic_identity':'ingredient',
+    }
 
 class Equipement(Ingredient):
     #categorie d'objet
@@ -61,6 +78,9 @@ class Equipement(Ingredient):
     boni = relationship("BonusBase",secondary=bonusBaseEquipement, back_populates= "equipements")
     panoplie_id = Column(Integer,ForeignKey("panoplie.id_"))
     panoplie = relationship("Panoplie", back_populates="equipements")
+    __mapper_args__ = {
+        'polymorphic_identity':'ingredient',
+    }
 
 class Panoplie(base):
     __tablename__ = "panoplie"
@@ -106,12 +126,20 @@ class Prix(base):
     premiere_vue = Column(Date)
     derniere_vue = Column(Date)
     en_cours = Column(Boolean)
+    type = Column(String(50))
+    __mapper_args__ = {
+        'polymorphic_identity':'prix',
+        'polymorphic_on':type
+    }
 
 class PrixObjet(Prix):
     __tablename__ = "prixObjet"
     id_ = Column(Integer, ForeignKey("prix.id_"),primary_key=True)
     objet_id = Column(Integer, ForeignKey('objet.id_'))
     objet = relationship("Objet",  back_populates="prixs")
+    __mapper_args__ = {
+        'polymorphic_identity':'prix',
+    }
 
 class PrixRessource(Prix):
     __tablename__ = "prixRessource"
@@ -119,6 +147,9 @@ class PrixRessource(Prix):
     quantite = Column(Integer)
     ressource_id = Column(Integer, ForeignKey('ressource.id_'))
     ressources = relationship("Ressource",  back_populates="prixs")
+    __mapper_args__ = {
+        'polymorphic_identity':'prix',
+    }
 
 class Objet(base):
     #vrai objet du jeu
@@ -134,7 +165,7 @@ class Objet(base):
 
 
 # Creating my base and my session
-engine = sqlalchemy.create_engine("sqlite:///my_db.db", echo='debug')
+engine = sqlalchemy.create_engine("sqlite:///my_db.db")#, echo='debug'
 base.metadata.create_all(engine)
 
 DBsession = sqlalchemy.orm.sessionmaker(bind=engine)
