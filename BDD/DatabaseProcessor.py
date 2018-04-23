@@ -34,6 +34,4 @@ class DatabaseProcessor():
         return output
 
     def getListVente(self,ing, en_cours):
-        for prix in self.session.query(PrixObjet).join(Objet).filter(and_(Objet.equipement_id == ing.id_, PrixObjet.en_cours == en_cours)).order_by(PrixObjet.val).all():
-            print(type(prix))
         return self.session.query(PrixObjet).join(Objet).filter(and_(Objet.equipement_id == ing.id_, PrixObjet.en_cours == en_cours)).order_by(PrixObjet.val).all()

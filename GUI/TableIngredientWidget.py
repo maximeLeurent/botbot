@@ -60,7 +60,6 @@ class LabelPlusMoins(QWidget):
         self.setSizeButton()
 
     def setSizeButton(self):
-        print("setSizeButton")
         self.plusButton.resize(QSize(self.lineEdit.size().height()/2, self.lineEdit.size().height()/2))
         self.moinsButton.resize(QSize(self.lineEdit.size().height()/2, self.lineEdit.size().height()/2))
 
@@ -124,6 +123,13 @@ class TableIngredientWidget(QWidget):
         middleLayout.addWidget(self.tableView)
         self.setMinimumSize(QSize(300, 500))
         self.nbCraft.valueChanged.connect(self.tableView.model().majNbCraft)
+
+        bottomLayout = QHBoxLayout()
+        layout.addLayout(bottomLayout)
+        creerButton = QPushButton("Buy & Create")
+        bottomLayout.addWidget(creerButton)
+        achatButton = QPushButton("Buy")
+        bottomLayout.addWidget(achatButton)
 
     def majIngSelected(self, ing):
         self.selectedIng = ing
