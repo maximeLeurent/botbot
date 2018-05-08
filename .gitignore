@@ -1,1 +1,4 @@
 *.pyc
+BDD/__pycache__/bdd.cpython-36.pyc
+Perso/__pycache__/InventoryManager.cpython-36.pyc
+Perso/__pycache__/PersoProcessor.cpython-36.pyc
