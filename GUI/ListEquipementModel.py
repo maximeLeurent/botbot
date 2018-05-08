@@ -26,12 +26,16 @@ class ListEquipementModel(QtCore.QAbstractListModel):
         self.layoutChanged.emit()
 
     def rowCount(self, parent):
-        return len(self.items)
+        return len(self.items)+1
 
     def data(self, index, role):
         if role == QtCore.Qt.DisplayRole:
-            value = self.items[index.row()]
+            if index.row() == 0:
+                return ""
+            value = self.items[index.row()-1]
             return "%s" % ( value.nom)
 
     def getEquipement(self, index):
-        return self.items[index]
+        if index == 0:
+            return None
+        return self.items[index-1]
