@@ -12,9 +12,7 @@ class ListVenteModel(QtCore.QAbstractListModel):
 
     def refresh(self):
         self.layoutAboutToBeChanged.emit()
-        print("Ing id_ %i"%self.selectedIng.id_)
         self.listVentes = self.mainWin.dbProcessor.getListVente(self.selectedIng, self.en_cours)
-        print("In refresh ListVente len list : %i"%len(self.listVentes))
         self.layoutChanged.emit()
 
     def rowCount(self, parent):

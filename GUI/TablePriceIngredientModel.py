@@ -83,6 +83,8 @@ class TablePriceIngredientModel(QtCore.QAbstractTableModel):
             return QtCore.Qt.ItemIsEnabled
 
     def data(self, index, role):
+        if(not index.isValid()):
+            return QVariant()
         if role == QtCore.Qt.DisplayRole:
             if(index.row() < len(self.infoPrices)):
                 infoPrice = self.infoPrices[index.row()]

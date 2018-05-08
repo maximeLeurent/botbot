@@ -11,7 +11,6 @@ class LabelPlusMoins(QWidget):
         QItemDelegate.__init__(self, parent)
         mainLayout = QHBoxLayout(self)
 
-
         if title:
             label = QLabel(title, self)
             mainLayout.addWidget(label)
@@ -72,7 +71,6 @@ class LabelPlusMoinsDeledate(QItemDelegate):
         return self.widget
 
 class PriceDisplay(QItemDelegate):
-
     def __init__(self, parent):
         QItemDelegate.__init__(self, parent)
         self.buttonAchat = QPushButton("? K", self)
