@@ -2,10 +2,13 @@ from .bdd import *
 from .InfoPrice import InfoPrice
 
 from sqlalchemy import and_
+from .CreateFakeEntryBDD import createAllFakeEntry
 
 class DatabaseProcessor():
     def __init__(self):
         self.engine, self.session = create()
+        if len(self.session.query(Ingredient).all()) == 0:
+            createAllFakeEntry(self.session)
 
     def getListItemCraftable(self):
         return self.session.query(Equipement).filter(Equipement.craftable == True).all()

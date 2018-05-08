@@ -26,7 +26,7 @@ class LabelPlusMoins(QWidget):
             self.lineEdit.setText(str(initValue))
         except:
             pass
-        buttonLayout = QVBoxLayout(self)
+        buttonLayout = QVBoxLayout()
         mainLayout.addLayout(buttonLayout)
         self.plusButton = QPushButton("+", self)
         self.plusButton.clicked.connect(self.plus)

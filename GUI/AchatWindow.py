@@ -75,10 +75,10 @@ class AchatWindow(QWidget):
         mainLayout = QVBoxLayout(self)
         self.setLayout(mainLayout)
 
-        topLayout = QHBoxLayout(self)
+        topLayout = QHBoxLayout()
         mainLayout.addLayout(topLayout)
 
-        mediumLayout = QHBoxLayout(self)
+        mediumLayout = QHBoxLayout()
         mainLayout.addLayout(mediumLayout)
 
         #========Icon widget in the left top corner (list + icon)

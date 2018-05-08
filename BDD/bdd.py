@@ -8,37 +8,109 @@ from sqlalchemy.orm import relationship
 from PriceToStr import priceToStr
 
 import datetime
-base = declarative_base()
+Base = declarative_base()
 
-class Categorie(base):
+categorieHDV = Table('categorieHDV', Base.metadata,
+    Column('categorie_id', Integer, ForeignKey('categorie.id_')),
+    Column('hdv_id', Integer, ForeignKey('hdv.id_'))
+)
+categorieAtelier = Table('categorieAtelier', Base.metadata,
+    Column('categorie_id', Integer, ForeignKey('categorie.id_')),
+    Column('atelier_id', Integer, ForeignKey('atelier.id_'))
+)
+
+class Categorie(Base):
     __tablename__ = "categorie"
     id_ = Column(Integer, primary_key=True)
     nom = Column(String(20))
-    HDVs = relationship("HDV", back_populates= "categorie")
+    HDVs = relationship("HDV", secondary=categorieHDV, back_populates= "categories")
+    ateliers = relationship("Atelier", secondary=categorieAtelier, back_populates= "categories")
     ingredients = relationship("Ingredient", back_populates= "categorie")
 
     def __str__(self):
         return self.nom
 
-class HDV(base):
-    __tablename__ = "hdv"
+class ObjectFixe(Base):
+    __tablename__ = "objectFixe"
     id_ = Column(Integer, primary_key=True)
-    xPos = Column(Integer)
-    yPos = Column(Integer)
+    pos_id = Column(Integer, ForeignKey("position.id_"))
+    pos = relationship("Position", back_populates = "objetsFixes")
+    zone_id = Column(Integer, ForeignKey("zoneClick.id_"))
+    zone = relationship("ZoneClick", foreign_keys = [zone_id],  back_populates = "objet")
+    type = Column(String(10))
+    __mapper_args__ = {
+        'polymorphic_identity':'objectFixe',
+        'polymorphic_on':type
+    }
+
+class ZoneClick(Base):
+    __tablename__ = "zoneClick"
+    id_ = Column(Integer, primary_key=True)
+    topLeft = Column(Integer)
+    buttomRight = Column(Integer)
+    objet = relationship("ObjectFixe", back_populates="zone")
+
+class AppareilCraft(ObjectFixe):
+    """
+    secondaryZone, sometime it is necessary to make a second click to open interface
+    """
+    __tablename__ = "appareilCraft"
+    id_ = Column(Integer, ForeignKey("objectFixe.id_"),primary_key=True)
+    job = Column(String(10))
+    atelier_id = Column(Integer, ForeignKey("atelier.id_"))
+    ateliers = relationship("Atelier", foreign_keys = [atelier_id],back_populates = "appareilsCraft")
+    secondaryZone_id = Column(Integer, ForeignKey("zoneClick.id_"))
+    secondaryZone = relationship("ZoneClick", foreign_keys = [secondaryZone_id],  back_populates = "objet")
+    __mapper_args__ = {
+        'polymorphic_identity':'appareilCraft'
+    }
+class Atelier(ObjectFixe):
+    """
+    la zone donne par Object Fixe est la porte d'entree
+    """
+    __tablename__ = "atelier"
+    id_ = Column(Integer, ForeignKey("objectFixe.id_"),primary_key=True)
     ville = Column(String(20))
-    categorie_id = Column(Integer, ForeignKey("categorie.id_"))
-    categorie = relationship("Categorie", back_populates= "HDVs")
+    outZoneClick_id = Column(Integer, ForeignKey("zoneClick.id_"))
+    outZoneClick = relationship("ZoneClick", foreign_keys = [outZoneClick_id], back_populates = "objet")
+    appareilsCraft = relationship("AppareilCraft",foreign_keys = [AppareilCraft.atelier_id], back_populates = "ateliers")
+    categories = relationship("Categorie", secondary=categorieAtelier, back_populates= "ateliers")
+    __mapper_args__ = {
+        'polymorphic_identity':'atelier'
+    }
+
+class Zaap(ObjectFixe):
+    __tablename__ = "zaap"
+    id_ = Column(Integer, ForeignKey("objectFixe.id_"),primary_key=True)
+    __mapper_args__ = {
+        'polymorphic_identity':'zaap'
+    }
+
+class HDV(ObjectFixe):
+    __tablename__ = "hdv"
+    id_ = Column(Integer, ForeignKey("objectFixe.id_"),primary_key=True)
+    ville = Column(String(20))
+    categories = relationship("Categorie",secondary=categorieHDV, back_populates= "HDVs")
+    __mapper_args__ = {
+        'polymorphic_identity':'hdv',
+    }
 
     def __str__(self):
         return "%i;%i"%(self.xPos, self.yPos)
 
+class Position(Base):
+    __tablename__ = "position"
+    id_ = Column(Integer, primary_key=True)
+    xPos = Column(Integer)
+    yPos = Column(Integer)
+    objetsFixes = relationship("ObjectFixe", back_populates = "pos")
 
-bonusBaseEquipement = Table('bonusBaseEquipement', base.metadata,
+bonusBaseEquipement = Table('bonusBaseEquipement', Base.metadata,
     Column('equipement_id', Integer, ForeignKey('equipement.id_')),
     Column('bonus_id', Integer, ForeignKey('bonusBase.id_'))
 )
 
-class Ingredient(base):
+class Ingredient(Base):
     __tablename__ = "ingredient"
     id_ = Column(Integer, primary_key=True)
     nom = Column(String(50))
@@ -103,7 +175,7 @@ class Ressource(Ingredient):
     id_ = Column(Integer, ForeignKey("ingredient.id_"),primary_key=True)
     prixs = relationship("PrixRessource", back_populates= "ressources")
     __mapper_args__ = {
-        'polymorphic_identity':'ingredient',
+        'polymorphic_identity':'ressource',
     }
 
 class Equipement(Ingredient):
@@ -118,7 +190,7 @@ class Equipement(Ingredient):
         'polymorphic_identity':'ingredient',
     }
 
-class Panoplie(base):
+class Panoplie(Base):
     __tablename__ = "panoplie"
     id_ = Column(Integer, primary_key=True)
     nom = Column(String(50))
@@ -127,7 +199,7 @@ class Panoplie(base):
     def __str__(self):
         return self.nom
 
-class Metier(base):
+class Metier(Base):
     __tablename__ = "metier"
     id_ = Column(Integer, primary_key=True)
     nom = Column(String(50))
@@ -136,7 +208,7 @@ class Metier(base):
     def __str__(self):
         return self.nom
 
-class BonusBase(base):
+class BonusBase(Base):
     __tablename__ = "bonusBase"
     id_ = Column(Integer, primary_key=True)
     val_min = Column(Integer)
@@ -157,8 +229,7 @@ class BonusBase(base):
             return "<font color=%s>%i en %s</font>" %(color,self.val_min,self.element.nom)
         return "<font color=%s>%i à %i en %s</font>" %(color,self.val_min,self.val_max,self.element.nom)
 
-
-class Element(base):
+class Element(Base):
     __tablename__ = "element"
     id_ = Column(Integer, primary_key=True)
     nom = Column(String(50))
@@ -166,7 +237,7 @@ class Element(base):
     def __str__(self):
         return self.nom
 
-class Carac(base):
+class Carac(Base):
     __tablename__ = "carac"
     id_ = Column(Integer, primary_key=True)
     val = Column(Integer)
@@ -182,7 +253,7 @@ class Carac(base):
             color = "black"
         return "<font color=%s>%i en %s</font>" %(color,self.val,self.element.nom)
 
-class Prix(base):
+class Prix(Base):
     __tablename__ = "prix"
     id_ = Column(Integer, primary_key=True)
     val = Column(Integer)
@@ -217,7 +288,7 @@ class PrixRessource(Prix):
         'polymorphic_identity':'prixRessource',
     }
 
-class Objet(base):
+class Objet(Base):
     #vrai objet du jeu
     __tablename__ = "objet"
     id_ = Column(Integer, primary_key=True)
@@ -230,85 +301,11 @@ class Objet(base):
     def __str__(self):
         return self.equipement.nom
 
-def createFakePrice(session):
-    """
-    add price for item anneau de sagesse
-    """
-    pr = PrixRessource( val = 111,
-            premiere_vue = datetime.datetime(2018,4,16),
-            derniere_vue = datetime.datetime.now(),
-            en_cours = True,
-            quantite = 1,
-            ressource_id = 2603)
-    session.add(pr)
-    pr1 = PrixRessource( val = 10,
-            premiere_vue = datetime.datetime(2018,4,16),
-            derniere_vue = datetime.datetime.now(),
-            en_cours = True,
-            quantite = 10,
-            ressource_id = 2603)
-    session.add(pr1)
-    pr3 = PrixRessource( val = 10023,
-            premiere_vue = datetime.datetime(2018,4,16),
-            derniere_vue = datetime.datetime.now(),
-            en_cours = True,
-            quantite = 100,
-            ressource_id = 2603)
-    session.add(pr3)
-
-    pr4 = PrixRessource( val = 1,
-            premiere_vue = datetime.datetime(2018,4,16),
-            derniere_vue = datetime.datetime.now(),
-            en_cours = True,
-            quantite = 1,
-            ressource_id = 2600)
-    session.add(pr4)
-    pr5 = PrixRessource( val = 10,
-            premiere_vue = datetime.datetime(2018,4,16),
-            derniere_vue = datetime.datetime.now(),
-            en_cours = True,
-            quantite = 10,
-            ressource_id = 2600)
-    session.add(pr5)
-    pr6 = PrixRessource( val = 100,
-            premiere_vue = datetime.datetime(2018,4,16),
-            derniere_vue = datetime.datetime.now(),
-            en_cours = True,
-            quantite = 100,
-            ressource_id = 2600)
-    session.add(pr6)
-    session.commit()
-
-def createFakeVente(session):
-    car = Carac(val = 5, element_id = 7)
-    ob = Objet(equipement_id = 3111,caracs = [car], a_moi = False)
-    po = PrixObjet(val = 100,
-            premiere_vue = datetime.datetime(2018,4,16),
-            derniere_vue = datetime.datetime.now(),
-            en_cours = True,
-            quantite = 1,
-            objet = ob)
-
-    car1 = Carac(val = 4, element_id = 7)
-    ob1 = Objet(equipement_id = 3111,caracs = [car1], a_moi = False)
-    po1 = PrixObjet(val = 200,
-            premiere_vue = datetime.datetime(2018,4,16),
-            derniere_vue = datetime.datetime.now(),
-            en_cours = True,
-            quantite = 1,
-            objet = ob1)
-    session.add(car)
-    session.add(ob)
-    session.add(po)
-    session.add(car1)
-    session.add(ob1)
-    session.add(po1)
-    session.commit()
 
 def create():
     # Creating my base and my session
     engine = sqlalchemy.create_engine("sqlite:///my_db.db")#, echo='debug'
-    base.metadata.create_all(engine)
+    Base.metadata.create_all(engine)
 
     DBsession = sqlalchemy.orm.sessionmaker(bind=engine)
     session = DBsession()
