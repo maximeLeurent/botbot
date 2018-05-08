@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    ## Hello Main Albert Duval
     app = QtWidgets.QApplication(sys.argv)
     global mainWin
     mainWin = MainWindow()
