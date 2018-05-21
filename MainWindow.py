@@ -13,14 +13,23 @@ from GUI.MainWindowMenuBar import MainWindowMenuBar
 from GUI.AchatWindow import AchatWindow
 from GUI.MessageDisplayer import MessageDisplayer
 from GUI.UserPreference import UserPreference
+from GUI.TakerCoordonnee import TakerCoordonnee
 from BDD.DatabaseProcessor import DatabaseProcessor
 from Perso.PersoProcessor import PersoProcessor
+
+
+
 
 
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile( inspect.currentframe() )) [0]))
 if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
 pathPreference = os.path.join(cmd_folder, "prefUser.json")
+import pytesseract
+TESSDATA_PREFIX = os.path.join(cmd_folder,"Tesseract-OCR")
+pytesseract.pytesseract.tesseract_cmd = os.path.join(TESSDATA_PREFIX, 'tesseract')
+tessdata_dir_config = '--tessdata-dir "%s"'%os.path.join(TESSDATA_PREFIX, 'tessdata')
+
 
 class MainWindow(QMainWindow):
     message = pyqtSignal(str)
@@ -49,7 +58,7 @@ class MainWindow(QMainWindow):
         self.achatWindow = self.createSubWindows(AchatWindow(self.centralWidget, self), "Achat")
         self.achatWindow.hide()
 
-        menuBar = MainWindowMenuBar(self)
+        menuBar = MainWindowMenuBar(self, self)
         self.setMenuWidget(menuBar)
 
     def createSubWindows(self, widget, title):
@@ -62,6 +71,10 @@ class MainWindow(QMainWindow):
 
     def openAchat(self):
         self.achatWindow.show()
+
+    def openScreenShotTaker(self):
+        subWindow = self.createSubWindows(TakerCoordonnee(self.centralWidget, self), "Take ScreenShot")
+        subWindow.show()
 
     def closeEvent(self, event):
         self.mdiArea.closeAllSubWindows()
